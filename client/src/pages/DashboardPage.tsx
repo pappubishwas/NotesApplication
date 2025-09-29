@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import NoteCard from '../components/NoteCard';
-import api, { setAuthToken } from '../services/api'; // Make sure setAuthToken is imported
+import api from '../services/api';
 
 // Note interface
 interface Note {
@@ -9,48 +9,21 @@ interface Note {
   title: string;
   content: string;
 }
-const DashboardPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // State 
+
+interface DashboardContext {
+  notes: Note[];
+  refreshNotes: () => Promise<void>;
+}
+
+const DashboardPage: React.FC = () => {
+  const { notes, refreshNotes } = useOutletContext<DashboardContext>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState<Note | null>(null);
   const [noteTitle, setNoteTitle] = useState("");
   const [noteContent, setNoteContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  // Fetch notes 
-  useEffect(() => {
-    // Get the token from local storage
-    const token = localStorage.getItem('token');
-
-    if (token) {
-      // Set the token for all future API requests
-      setAuthToken(token);
-    } else {
-      // If no token, then redirect to login
-      navigate('/login'); 
-      console.error("No token found. User is not authenticated.");
-    }
-
-    const fetchNotes = async () => {
-      setIsLoading(true);
-      try {
-        const res = await api.get('/notes');
-        setNotes(res.data);
-      } catch (error) {
-        console.error("Failed to fetch notes:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchNotes();
-  }, []); 
-
-  // Modal Control Functions
   const openCreateModal = () => {
     setCurrentNote(null);
     setNoteTitle("");
@@ -74,9 +47,9 @@ const DashboardPage: React.FC = () => {
 
   // API Call Handlers
   const handleDelete = async (id: string) => {
-    setNotes(notes.filter(note => note._id !== id));
     try {
       await api.delete(`/notes/${id}`);
+      await refreshNotes(); 
     } catch (error) {
       console.error("Failed to delete note:", error);
     }
@@ -89,13 +62,12 @@ const DashboardPage: React.FC = () => {
 
     try {
       if (currentNote) {
-        const res = await api.put(`/notes/${currentNote._id}`, noteData);
-        setNotes(notes.map(note => note._id === currentNote._id ? res.data : note));
+        await api.put(`/notes/${currentNote._id}`, noteData);
       } else {
-        const res = await api.post('/notes', noteData);
-        setNotes(prev => [res.data, ...prev]);
+        await api.post('/notes', noteData);
       }
       closeModal();
+      await refreshNotes(); 
     } catch (err) {
       console.error("Failed to save note:", err);
     } finally {
@@ -116,9 +88,7 @@ const DashboardPage: React.FC = () => {
         </button>
       </div>
 
-      {isLoading ? (
-        <p className="text-center text-gray-500">Loading notes...</p>
-      ) : notes.length > 0 ? (
+      {notes.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {notes.map(note => (
             <NoteCard key={note._id} note={note} onDelete={handleDelete} onUpdate={openEditModal} />
@@ -131,33 +101,34 @@ const DashboardPage: React.FC = () => {
         </div>
       )}
 
+      {/* The modal JSX remains exactly the same */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">{currentNote ? 'Edit Note' : 'New Note'}</h2>
-            <form onSubmit={handleSaveNote}>
-              <div className="space-y-4">
-                <input
-                  type="text" placeholder="Title" value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-                <textarea
-                  placeholder="Content" value={noteContent} onChange={(e) => setNoteContent(e.target.value)} rows={6}
-                  className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
-              <div className="flex justify-end items-center mt-6 space-x-3">
-                <button type="button" onClick={closeModal} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
-                  Cancel
-                </button>
-                <button type="submit" disabled={isSaving} className={`px-4 py-2 font-semibold text-white rounded-lg transition-colors ${isSaving ? 'bg-teal-400' : 'bg-teal-600 hover:bg-teal-700'}`}>
-                  {isSaving ? 'Saving...' : 'Save'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+         <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
+           <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative">
+             <h2 className="text-2xl font-bold text-gray-800 mb-4">{currentNote ? 'Edit Note' : 'New Note'}</h2>
+             <form onSubmit={handleSaveNote}>
+               <div className="space-y-4">
+                 <input
+                   type="text" placeholder="Title" value={noteTitle} onChange={(e) => setNoteTitle(e.target.value)}
+                   className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                 />
+                 <textarea
+                   placeholder="Content" value={noteContent} onChange={(e) => setNoteContent(e.target.value)} rows={6}
+                   className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                 />
+               </div>
+               <div className="flex justify-end items-center mt-6 space-x-3">
+                 <button type="button" onClick={closeModal} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                   Cancel
+                 </button>
+                 <button type="submit" disabled={isSaving} className={`px-4 py-2 font-semibold text-white rounded-lg transition-colors ${isSaving ? 'bg-teal-400' : 'bg-teal-600 hover:bg-teal-700'}`}>
+                   {isSaving ? 'Saving...' : 'Save'}
+                 </button>
+               </div>
+             </form>
+           </div>
+         </div>
+       )}
     </div>
   );
 };

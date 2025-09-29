@@ -6,10 +6,17 @@ import App from "./App";
 import Signup from "./pages/Signup";
 import OTPVerify from "./pages/OTPVerify";
 import Login from "./pages/Login";
-import ProtectedRoute from "./components/ProtectedRoute"; // Import the new component
+import ProtectedRoute from "./components/ProtectedRoute"; 
 import DashboardLayout from "./components/DashboardLayout";
 import DashboardPage from "./pages/DashboardPage";
 import NoteDetailPage from "./pages/NoteDetailPage";
+import api, { setAuthToken } from './services/api';
+
+
+const token = localStorage.getItem('token');
+if (token) {
+  setAuthToken(token);
+}
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
