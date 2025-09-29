@@ -36,7 +36,7 @@ router.get("/google/callback", passport_1.default.authenticate("google", { sessi
     var user = req.user;
     var token = jsonwebtoken_1.default.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
     // redirect to frontend with token
-    var frontend = process.env.FRONTEND_URL || "http://localhost:5173";
+    var frontend = process.env.FRONTEND_URL;
     res.redirect("".concat(frontend, "/auth/google/success?token=").concat(token));
 });
 router.get("/google/failure", function (req, res) {

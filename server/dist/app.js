@@ -50,7 +50,7 @@ var passport_1 = __importDefault(require("passport"));
 var passport_google_oauth20_1 = require("passport-google-oauth20");
 var User_1 = __importDefault(require("./models/User"));
 var app = (0, express_1.default)();
-app.use((0, cors_1.default)({ origin: process.env.FRONTEND_URL || "http://localhost:5173", credentials: true }));
+app.use((0, cors_1.default)({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(express_1.default.json());
 /* Mongo */
 mongoose_1.default.connect(process.env.MONGO_URI || "", {})

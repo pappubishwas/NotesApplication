@@ -1,3 +1,5 @@
+// src/main.tsx or wherever your root router is located
+
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
@@ -10,8 +12,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./components/DashboardLayout";
 import DashboardPage from "./pages/DashboardPage";
 import NoteDetailPage from "./pages/NoteDetailPage";
-import api, { setAuthToken } from './services/api';
-
+// 1. IMPORT THE CALLBACK COMPONENT
+import GoogleAuthCallback from "./pages/GoogleAuthCallback"; 
+import { setAuthToken } from './services/api';
 
 const token = localStorage.getItem('token');
 if (token) {
@@ -28,11 +31,13 @@ createRoot(document.getElementById("root")!).render(
           <Route path="signup/otp" element={<OTPVerify />} />
           <Route path="login" element={<Login />} />
 
+          <Route path="auth/google/success" element={<GoogleAuthCallback />} />
+
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<DashboardPage />} />{" "}
-              <Route path="notes/:noteId" element={<NoteDetailPage />} />{" "}
+              <Route index element={<DashboardPage />} />
+              <Route path="notes/:noteId" element={<NoteDetailPage />} />
             </Route>
           </Route>
         </Route>

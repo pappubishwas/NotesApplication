@@ -10,7 +10,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "./models/User";
 
 const app = express();
-app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: process.env.FRONTEND_URL , credentials: true }));
 app.use(express.json());
 
 /* Mongo */

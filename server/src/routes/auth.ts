@@ -24,7 +24,7 @@ router.get("/google/callback", passport.authenticate("google", { session: false,
   const user: any = (req.user as any);
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
   // redirect to frontend with token
-  const frontend = process.env.FRONTEND_URL || "http://localhost:5173";
+  const frontend = process.env.FRONTEND_URL;
   res.redirect(`${frontend}/auth/google/success?token=${token}`);
 });
 

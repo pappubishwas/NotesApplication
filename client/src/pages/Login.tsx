@@ -39,7 +39,7 @@ const Login: React.FC = () => {
   };
 
   const handleGoogleSignIn = () => {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE || "http://localhost:5000/api";
+    const apiBaseUrl = import.meta.env.VITE_API_BASE;
     window.location.href = `${apiBaseUrl}/auth/google`;
   };
 
